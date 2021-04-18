@@ -1,6 +1,6 @@
 let http = require('http')
 let fs   = require('fs')
-let cfg  = require('./conf')
+let cfg  = require('./config')
 
 let app = http.createServer(function(request, response){
     let url = request.url
@@ -8,10 +8,13 @@ let app = http.createServer(function(request, response){
         for (var key in cfg.proxy) {
             if (url.indexOf(key) > -1) {
                 let info = cfg.proxy[key].target.split(':')
+                let host = info[1].slice(2)
+                let port = info[2] || 80
+                request.headers.host = host + ':' + port
                 let opt = {
                     protocol: info[0]+':',
-                    host:     info[1].slice(2),
-                    port:     info[2] || 80,
+                    host:     host,
+                    port:     port,
                     method:   request.method,
                     path:     url,
                     json:     true,
@@ -45,7 +48,7 @@ function proxy(opt, request, response) {
             response.end();
         });
         response.writeHead(proxyResponse.statusCode, proxyResponse.headers);
-    }); 
+    });
     
     request.on('data', function(chunk) {
         console.log('in request length:', chunk.length);
