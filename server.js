@@ -7,10 +7,18 @@ let app = http.createServer(function(request, response){
     if(url !== '/favicon.ico') {
         for (var key in cfg.proxy) {
             if (url.indexOf(key) > -1) {
-                let info = cfg.proxy[key].target.split(':')
+                var rule = cfg.proxy[key]
+                let info = rule.target.split(':')
                 let host = info[1].slice(2)
                 let port = info[2] || 80
                 request.headers.host = host + ':' + port
+                for (var pattern in rule.pathRewrite) {
+                    var reg = new RegExp(pattern)
+                    if (reg.test(url)) {
+                        url = url.replace(reg, rule.pathRewrite[pattern])
+                        break
+                    }
+                }
                 let opt = {
                     protocol: info[0]+':',
                     host:     host,
